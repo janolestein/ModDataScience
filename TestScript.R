@@ -59,6 +59,7 @@ dataMasterFile <- merge(x=dataMasterFile, y=nuclearRenewablesRlectricity, by=c("
 mergeTest2021 <- filter(dataMasterFile, Year == 2021)
 mergeTest2020 <- filter(dataMasterFile, Year == 2020)
 
+str(dataMasterFile)
 
 
 
@@ -66,8 +67,8 @@ ggplot(mergeTest2021, aes(mergeTest2021$Entity, mergeTest2021$`Coal (% electrici
   geom_point() + 
   labs(y = "Entity", x = "Coal")
 
-ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Renewables (% electricity)`/27)) + 
-  geom_bar(stat="identity") + 
+ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Renewables (% electricity)`, group = 1)) + 
+  stat_summary(fun=mean, geom="line") + 
   labs(y = "Year", x = "Renew")
 
 write.csv(dataMasterFile, "/Users/jstein/Desktop/R/dataMasterFile.csv", row.names=FALSE)
