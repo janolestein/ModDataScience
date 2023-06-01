@@ -1,13 +1,14 @@
 pacman::p_load(pacman, dplyr, GGally, ggplot2, ggthemes, 
                ggvis, httr, lubridate, plotly, rio, rmarkdown, shiny, 
                stringr, tidyr) 
-selc <- import("C:/Users/Jole/Documents/R/DataScience/Data/share-electricity-low-carbon.csv")
-hdi <- import("C:/Users/Jole/Documents/R/DataScience/Data/human-development-index-hdi-by-country-2023.csv")
+
 emix <- import("/Users/jstein/Desktop/R/share-elec-by-source.csv")
-euCount <- import("/Users/jstein/Desktop/R/eu_countries.csv")
-
-
-
+euCountData <- import("/Users/jstein/Desktop/R/eu_countries.csv")
+euCountOnly <- import("/Users/jstein/Desktop/R/only_eu_countries.csv")
+elecProdSource <- import("/Users/jstein/Desktop/R/electricity-prod-source-stacked.csv")
+perCapitaElecFossilNuclearRenewables <- import("/Users/jstein/Desktop/R/per-capita-electricity-fossil-nuclear-renewables.csv")
+shareElectricityLowCarbon <- import("/Users/jstein/Desktop/R/share-electricity-low-carbon.csv")
+nuclearRenewablesRlectricity <- import("/Users/jstein/Desktop/R/nuclear-renewables-electricity.csv")
 
 head(selc)
 
@@ -45,11 +46,28 @@ ggplot(selcHdi2021, aes(selcHdi2021$hdi2021, selcHdi2021$`Low-carbon electricity
   geom_point() + 
   labs(y = "selc", x = "HDITIER")
 
-dataMasterFile <- merge(emix, euCount, by="Entity")
+
+
+
+#merge Data Sets
+dataMasterFile <- merge(x=emix, y=euCountOnly, by="Entity")
+dataMasterFile <- merge(x=dataMasterFile, y=euCountData, by=c("Entity","Year"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=elecProdSource, by=c("Entity","Year","Code"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=perCapitaElecFossilNuclearRenewables, by=c("Entity","Year","Code"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=shareElectricityLowCarbon, by=c("Entity","Year","Code"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=nuclearRenewablesRlectricity, by=c("Entity","Year","Code","Nuclear (% electricity)"), all.x=TRUE)
 mergeTest2021 <- filter(dataMasterFile, Year == 2021)
+mergeTest2020 <- filter(dataMasterFile, Year == 2020)
+
+
+
 
 ggplot(mergeTest2021, aes(mergeTest2021$Entity, mergeTest2021$`Coal (% electricity)`)) + 
   geom_point() + 
   labs(y = "Entity", x = "Coal")
+
+ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Renewables (% electricity)`/27)) + 
+  geom_bar(stat="identity") + 
+  labs(y = "Year", x = "Renew")
 
 write.csv(dataMasterFile, "/Users/jstein/Desktop/R/dataMasterFile.csv", row.names=FALSE)
