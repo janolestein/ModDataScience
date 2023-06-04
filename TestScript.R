@@ -127,7 +127,6 @@ dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Austria
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
-  geom_line(data = dataWide %>% filter(Type == "Nuclear (% electricity)"),  group = 1, col="#268bd2") +
   geom_line(data = dataWide %>% filter(Type == "Coal (% electricity)"),  group = 1, col="#dc322f") +
   geom_line(data = dataWide %>% filter(Type == "Gas (% electricity)"),  group = 1, col="#2aa198") +
   geom_line(data = dataWide %>% filter(Type == "Hydro (% electricity)"),  group = 1, col="#b58900") +
@@ -135,9 +134,8 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   geom_line(data = dataWide %>% filter(Type == "Wind (% electricity)"),  group = 1, col="#d33682") +
   geom_line(data = dataWide %>% filter(Type == "Oil (% electricity)"),  group = 1, col="#49be25") +
   geom_line(data = dataWide %>% filter(Type == "Bioenergy (% electricity)"), group = 1, col="#be4d25") +
-  geom_line(data = dataWide %>% filter(Type == "Other renewables excluding bioenergy (% electricity)"), group = 1, col="#be25ae") +
-  geom_label_repel(data = filter(dataWide, Year=="2022"), aes( label = Type), nudge_x = 2, force = 5) +
-  geom_label_repel(data = filter(dataWide, Year=="1990"), aes( label = Type), nudge_x = -2) +
+  geom_label_repel(data = filter(dataWide, Year=="2022", Type!="Other renewables excluding bioenergy (% electricity)",Type!="Nuclear (% electricity)"), aes( label = Type), nudge_x = 2, force = 5) +
+  geom_label_repel(data = filter(dataWide, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)",Type!="Nuclear (% electricity)"), aes( label = Type), nudge_x = -2) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Energie Quellen bei der Stromerzeugung in Östereich", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
@@ -150,15 +148,13 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   geom_line(data = dataWide %>% filter(Type == "Nuclear (% electricity)"),  group = 1, col="#268bd2") +
   geom_line(data = dataWide %>% filter(Type == "Coal (% electricity)"),  group = 1, col="#dc322f") +
   geom_line(data = dataWide %>% filter(Type == "Gas (% electricity)"),  group = 1, col="#2aa198") +
-  geom_line(data = dataWide %>% filter(Type == "Hydro (% electricity)"),  group = 1, col="#b58900") +
   geom_line(data = dataWide %>% filter(Type == "Solar (% electricity)"),  group = 1, col="#6c71c4") +
   geom_line(data = dataWide %>% filter(Type == "Wind (% electricity)"),  group = 1, col="#d33682") +
   geom_line(data = dataWide %>% filter(Type == "Oil (% electricity)"),  group = 1, col="#49be25") +
   geom_line(data = dataWide %>% filter(Type == "Solar (% electricity)"),  group = 1, col="#be4d25") +
   geom_line(data = dataWide %>% filter(Type == "Bioenergy (% electricity)"), group = 1, col="#be4d25") +
-  geom_line(data = dataWide %>% filter(Type == "Other renewables excluding bioenergy (% electricity)"), group = 1, col="#be25ae") +
-  geom_label_repel(data = filter(dataWide, Year=="2022"), aes( label = Type), nudge_x = 2, force = 5) +
-  geom_label_repel(data = filter(dataWide, Year=="1990"), aes( label = Type), nudge_x = -2) +
+  geom_label_repel(data = filter(dataWide, Year=="2022", Type!="Other renewables excluding bioenergy (% electricity)",Type!="Hydro (% electricity)"), aes( label = Type), nudge_x = 2, force = 5) +
+  geom_label_repel(data = filter(dataWide, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)",Type!="Hydro (% electricity)"), aes( label = Type), nudge_x = -2) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Energie Quellen bei der Stromerzeugung in Belgien", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
@@ -176,9 +172,8 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   geom_line(data = dataWide %>% filter(Type == "Wind (% electricity)"),  group = 1, col="#d33682") +
   geom_line(data = dataWide %>% filter(Type == "Oil (% electricity)"),  group = 1, col="#49be25") +
   geom_line(data = dataWide %>% filter(Type == "Bioenergy (% electricity)"), group = 1, col="#be4d25") +
-  geom_line(data = dataWide %>% filter(Type == "Other renewables excluding bioenergy (% electricity)"), group = 1, col="#be25ae") +
-  geom_label_repel(data = filter(dataWide, Year=="2022"), aes( label = Type), nudge_x = 2, force = 5) +
-  geom_label_repel(data = filter(dataWide, Year=="1990"), aes( label = Type), nudge_x = -2) +
+  geom_label_repel(data = filter(dataWide, Year=="2022", Type!="Other renewables excluding bioenergy (% electricity)"), aes( label = Type), nudge_x = 2, force = 5) +
+  geom_label_repel(data = filter(dataWide, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)"), aes( label = Type), nudge_x = -2) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Energie Quellen bei der Stromerzeugung in Bulgarien", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
@@ -188,7 +183,6 @@ dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Croatia
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
-  geom_line(data = dataWide %>% filter(Type == "Nuclear (% electricity)"),  group = 1, col="#268bd2") +
   geom_line(data = dataWide %>% filter(Type == "Coal (% electricity)"),  group = 1, col="#dc322f") +
   geom_line(data = dataWide %>% filter(Type == "Gas (% electricity)"),  group = 1, col="#2aa198") +
   geom_line(data = dataWide %>% filter(Type == "Hydro (% electricity)"),  group = 1, col="#b58900") +
@@ -196,9 +190,8 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   geom_line(data = dataWide %>% filter(Type == "Wind (% electricity)"),  group = 1, col="#d33682") +
   geom_line(data = dataWide %>% filter(Type == "Oil (% electricity)"),  group = 1, col="#49be25") +
   geom_line(data = dataWide %>% filter(Type == "Bioenergy (% electricity)"), group = 1, col="#be4d25") +
-  geom_line(data = dataWide %>% filter(Type == "Other renewables excluding bioenergy (% electricity)"), group = 1, col="#be25ae") +
-  geom_label_repel(data = filter(dataWide, Year=="2022"), aes( label = Type), nudge_x = 2, force = 5) +
-  geom_label_repel(data = filter(dataWide, Year=="1990"), aes( label = Type), nudge_x = -2) +
+  geom_label_repel(data = filter(dataWide, Year=="2022", Type!="Other renewables excluding bioenergy (% electricity)",Type!="Nuclear (% electricity)"), aes( label = Type), nudge_x = 2, force = 5) +
+  geom_label_repel(data = filter(dataWide, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)",Type!="Nuclear (% electricity)"), aes( label = Type), nudge_x = -2) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Energie Quellen bei der Stromerzeugung in Kroatien", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
