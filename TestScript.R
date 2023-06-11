@@ -1,8 +1,10 @@
 #load packages
 pacman::p_load(pacman, dplyr, GGally, ggplot2, ggthemes, 
                ggvis, httr, lubridate, plotly, rio, rmarkdown, shiny, 
-               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt) 
+               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt, forecast, ggfortify) 
 library(ggrepel)
+library(forecast)
+library(ggfortify)
 library(directlabels)
 library(tidyr)
 library(ggcorrplot)
@@ -60,11 +62,28 @@ ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, gro
   stat_summary(fun=mean, geom="line", size = 1) + 
   stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
   stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
-  geom_text(aes(x = 6, y = 20, label = "Erneurbare",  size=20)) + 
-  geom_text(aes(x = 6, y = 40, label = "Erneurberare + Nuklear")) +
+  geom_text(aes(x = 6, y = 20, label = "Erneuerbare",  size=20)) + 
+  geom_text(aes(x = 6, y = 40, label = "Erneuerbare + Nuklear")) +
   geom_text(aes(x = 15, y = 65, label = "Fossile Energie Träger")) +
   theme(legend.position = 'none') +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+#plot sources of Electricity over time(Renewables, Renewables+Nuclar, Fossil, Nucluear )
+dataAll1990 <- dataMasterFile %>% filter(Year %in% (1990:2022) )
+#plot sources of Electricity over time(Renewables, Renewables+Nuclar, Fossil )
+ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
+  stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+  stat_summary(aes(x=factor(Year), y=`Nuclear (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#b58900") + 
+  geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2") + 
+  geom_label(aes(x = 6, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f") +
+  geom_label(aes(x = 6, y = 25, label = "Nuklear"), colour="#b58900") +
+  geom_label(aes(x = 15, y = 65, label = "Fossile Energie Träger"), colour="#2aa198") +
+  theme(legend.position = 'none') +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  ylim(0, NA) + 
   labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 #plot sources of Electricity over time(all seperat, all Eu Countries)
@@ -809,3 +828,30 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Strommix in Schweden", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
+
+
+###########################Forcast######################
+
+dataWide <- gather(dataMasterFile, Type, percent, `Renewables (% electricity)`, factor_key=TRUE)
+dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
+dataGroup <- dataWide %>% group_by(Year) %>% summarise(mean= mean(percent))
+dataGroupTs <- ts(dataGroup, start=1990, frequency = 1)
+dataGroupTs <- dataGroupTs[, -1]
+plot(dataGroupTs)
+
+str(dataGroup)
+str(dataGroupTs)
+head(dataGroupTs)
+dataForecast <-  forecast(dataForecast, h=30)
+dfFor <- fortify(dataForecast, ts.connect = TRUE)
+plot(forecast(dataForecast, h=30))
+
+
+ggplot(data=dfFor, aes(x=Index, y=Fitted)) + 
+  geom_line(col="#268bd2") +
+  geom_line(aes(x=Index, y=`Point Forecast`), col="#dc322f") +
+  geom_ribbon(aes(x=Index, ymax=`Lo 95`, ymin=`Hi 95`), fill="#268bd2", alpha=.3) + 
+  geom_ribbon(aes(x=Index, ymax=`Lo 80`, ymin=`Hi 80`), fill="pink", alpha=.6) + 
+  scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
+  coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 100)) + 
+  labs(title="Prognose Erneuerbare Energien im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
