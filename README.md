@@ -7,6 +7,6 @@ Files:
 
 dataMasterFile.csv includes all Data gathered in one Place.
 
-eu_countries.csv inculudes all EU Countries and Data about theme like Area, population, Location, GDP and HDI.
+eu_countries.csv inculudes all EU Countries and Data about things like Area, population, Location, GDP and HDI.
 
 testScript.r is my R Progmramming File to test, merge and plot the Data.
