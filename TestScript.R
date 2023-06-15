@@ -1,10 +1,9 @@
 #load packages
 pacman::p_load(pacman, dplyr, GGally, ggplot2, ggthemes, 
                ggvis, httr, lubridate, plotly, rio, rmarkdown, shiny, 
-               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt, forecast, ggfortify) 
+               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt, rqdatatable) 
 library(ggrepel)
-library(forecast)
-library(ggfortify)
+library("rqdatatable")
 library(directlabels)
 library(tidyr)
 library(ggcorrplot)
@@ -26,6 +25,8 @@ elecProdSource <- import("C:/Users/Jole/Documents/R/DataScience/Data/electricity
 perCapitaElecFossilNuclearRenewables <- import("C:/Users/Jole/Documents/R/DataScience/Data/per-capita-electricity-fossil-nuclear-renewables.csv")
 shareElectricityLowCarbon <- import("C:/Users/Jole/Documents/R/DataScience/Data/share-electricity-low-carbon.csv")
 nuclearRenewablesRlectricity <- import("C:/Users/Jole/Documents/R/DataScience/Data/nuclear-renewables-electricity.csv")
+PoliticalDataAV <- import("C:/Users/Jole/Documents/R/DataScience/Data/PoliticalDataAV.csv")
+PoliticalDataGran <- import("C:/Users/Jole/Documents/R/DataScience/Data/PolDataGran.csv")
 #import master mac
 dataMasterFile <- import("/Users/jstein/Desktop/R/dataMasterFile.csv")
 
@@ -45,12 +46,298 @@ dataMasterFile <- merge(x=dataMasterFile, y=elecProdSource, by=c("Entity","Year"
 dataMasterFile <- merge(x=dataMasterFile, y=perCapitaElecFossilNuclearRenewables, by=c("Entity","Year","Code"), all.x=TRUE)
 dataMasterFile <- merge(x=dataMasterFile, y=shareElectricityLowCarbon, by=c("Entity","Year","Code"), all.x=TRUE)
 dataMasterFile <- merge(x=dataMasterFile, y=nuclearRenewablesRlectricity, by=c("Entity","Year","Code","Nuclear (% electricity)"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=PoliticalDataAV, by=c("Entity","Year"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=PoliticalDataGran, by=c("Entity","Year"), all.x=TRUE)
 mergeTest2021 <- filter(dataMasterFile, Year == 2021)
 mergeTest2020 <- filter(dataMasterFile, Year == 2020)
 
 str(dataMasterFile)
 
 write.csv(dataMasterFile, "C:/Users/Jole/Documents/R/DataScience/Data/dataMasterFile.csv", row.names=FALSE)
+write.csv(dataPol, "C:/Users/Jole/Documents/R/DataScience/Data/dataPol.csv", row.names=FALSE)
+write.csv(dataCorr, "C:/Users/Jole/Documents/R/DataScience/Data/dataCorr.csv", row.names=FALSE)
+
+
+##############Calc####################
+
+#Calculate Political Leanings as an Average over last 33 Years and add them as a new Column 
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Austria") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp <- cbind(dataTemp, AV_right)
+dataTemp <- cbind(dataTemp, AV_center)
+dataTemp <- cbind(dataTemp, AV_left)
+dataTemp <- dataTemp[ -c(3:38)]
+dataMasterFile <- merge(x=dataMasterFile, y=dataTemp, by=c("Entity","Year"), all.x=TRUE) 
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Belgium") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(3:38)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+#dataMasterFile <- dataMasterFile %>% 
+#  left_join(dataTemp, by=c("Entity","Year","AV_right","AV_center","AV_left")) %>% 
+#  mutate(var2 = coalesce(var2.x, var2.y)) %>% 
+#  select(-var2.x, -var2.y)
+
+#dataMasterFile <- merge(x=dataMasterFile, y=dataTemp, by=c("Entity","Year","AV_right","AV_center","AV_left"), all=TRUE) 
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Bulgaria") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Croatia") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Cyprus") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Czechia") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Denmark") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Estonia") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Finland") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="France") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Germany") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Greece") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Hungary") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Ireland") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Italy") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Latvia") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Lithuania") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Luxembourg") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Malta") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Netherlands") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Poland") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Portugal") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Romania") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Slovakia") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Slovenia") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Spain") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
+dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Sweden") 
+AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
+AV_center = round(mean((dataTemp$gov_cent1), na.rm = TRUE), digits=2)
+AV_left = round(mean((dataTemp$gov_left1), na.rm = TRUE), digits=2)
+dataTemp$AV_right <- AV_right
+dataTemp$AV_center <- AV_center
+dataTemp$AV_left <- AV_left
+dataTemp <- dataTemp[ -c(6:41)]
+dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
+
 
 
 ########################################plotting########################################
@@ -62,28 +349,11 @@ ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, gro
   stat_summary(fun=mean, geom="line", size = 1) + 
   stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
   stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
-  geom_text(aes(x = 6, y = 20, label = "Erneuerbare",  size=20)) + 
-  geom_text(aes(x = 6, y = 40, label = "Erneuerbare + Nuklear")) +
+  geom_text(aes(x = 6, y = 20, label = "Erneurbare",  size=20)) + 
+  geom_text(aes(x = 6, y = 40, label = "Erneurberare + Nuklear")) +
   geom_text(aes(x = 15, y = 65, label = "Fossile Energie Träger")) +
   theme(legend.position = 'none') +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
-  labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
-
-#plot sources of Electricity over time(Renewables, Renewables+Nuclar, Fossil, Nucluear )
-dataAll1990 <- dataMasterFile %>% filter(Year %in% (1990:2022) )
-#plot sources of Electricity over time(Renewables, Renewables+Nuclar, Fossil )
-ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, group = 1)) + 
-  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
-  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
-  stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
-  stat_summary(aes(x=factor(Year), y=`Nuclear (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#b58900") + 
-  geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2") + 
-  geom_label(aes(x = 6, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f") +
-  geom_label(aes(x = 6, y = 25, label = "Nuklear"), colour="#b58900") +
-  geom_label(aes(x = 15, y = 65, label = "Fossile Energie Träger"), colour="#2aa198") +
-  theme(legend.position = 'none') +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
-  ylim(0, NA) + 
   labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 #plot sources of Electricity over time(all seperat, all Eu Countries)
@@ -278,14 +548,13 @@ ggplot(data2022, aes(x=data1990$`Renewables (% electricity)`, xend=`Renewables (
 
 #filter year 
 data2021 <- filter(dataMasterFile, Year==2021)
-dataCorr <- data2021[,-c(1,2,3,11,20:31)]
+dataCorr <- data2021[,-c(1,2,8,9:17,11,21:24,32,35,36,38)]
+chars <- sapply(df, is.character)
+dataCorr[ , chars] <- as.data.frame(apply(dataCorr[ , chars], 2, as.numeric))
 corr <- cor(dataCorr)
 
-ggcorrplot(corr, hc.order = TRUE, 
-           type = "lower", 
-           lab = TRUE, 
-           lab_size = 3, 
-           method="circle")
+ggcorrplot(corr, hc.order = TRUE, type = "lower", lab = TRUE, lab_size = 3, method="circle")
+
 #Compute Correlation between HDI and Low Carbon electricity 
 cor(data2021$HDI_2021, data2021$`Low-carbon electricity (% electricity)`)
 #plot Correlation between HDI and Low Carbon electricity 
@@ -828,30 +1097,3 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Strommix in Schweden", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
-
-
-###########################Forcast######################
-
-dataWide <- gather(dataMasterFile, Type, percent, `Renewables (% electricity)`, factor_key=TRUE)
-dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
-dataGroup <- dataWide %>% group_by(Year) %>% summarise(mean= mean(percent))
-dataGroupTs <- ts(dataGroup, start=1990, frequency = 1)
-dataGroupTs <- dataGroupTs[, -1]
-plot(dataGroupTs)
-
-str(dataGroup)
-str(dataGroupTs)
-head(dataGroupTs)
-dataForecast <-  forecast(dataForecast, h=30)
-dfFor <- fortify(dataForecast, ts.connect = TRUE)
-plot(forecast(dataForecast, h=30))
-
-
-ggplot(data=dfFor, aes(x=Index, y=Fitted)) + 
-  geom_line(col="#268bd2") +
-  geom_line(aes(x=Index, y=`Point Forecast`), col="#dc322f") +
-  geom_ribbon(aes(x=Index, ymax=`Lo 95`, ymin=`Hi 95`), fill="#268bd2", alpha=.3) + 
-  geom_ribbon(aes(x=Index, ymax=`Lo 80`, ymin=`Hi 80`), fill="pink", alpha=.6) + 
-  scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
-  coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 100)) + 
-  labs(title="Prognose Erneuerbare Energien im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
