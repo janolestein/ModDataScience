@@ -1,7 +1,7 @@
 # ModDataScience
 Code and Data Files for my Data Science Course
 
-Electricity Data Source: https://ourworldindata.org/electricity-mix
+Electricity Data Source: Hannah Ritchie, Max Roser and Pablo Rosado (2022) - "Energy". Published online at OurWorldInData.org. Retrieved from: 'https://ourworldindata.org/energy' 
 
 Files:
 
