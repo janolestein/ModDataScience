@@ -421,10 +421,10 @@ ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, gro
   stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
   stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
   stat_summary(aes(x=factor(Year), y=`Nuclear (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#b58900") + 
-  geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2", size = 5) + 
-  geom_label(aes(x = 6, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f") +
-  geom_label(aes(x = 6, y = 25, label = "Nuklear"), colour="#b58900") +
-  geom_label(aes(x = 15, y = 65, label = "Fossile Energie Träger"), colour="#2aa198") +
+  geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2", size = 6) + 
+  geom_label(aes(x = 10, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f", size = 6) +
+  geom_label(aes(x = 6, y = 25, label = "Nuklear"), colour="#b58900", size = 6) +
+  geom_label(aes(x = 15, y = 65, label = "Fossile Energie Träger"), colour="#2aa198", size = 6) +
   theme(legend.position = 'none') +
   scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   theme_classic(base_size = 16) +
