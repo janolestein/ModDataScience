@@ -21,8 +21,6 @@ ggthemr_reset()
 emix <- import("C:/Users/Jole/Documents/R/DataScience/Data/share-elec-by-source.csv")
 euCountData <- import("C:/Users/Jole/Documents/R/DataScience/Data/eu_countries.csv")
 euCountOnly <- import("C:/Users/Jole/Documents/R/DataScience/Data/only_eu_countries.csv")
-elecProdSource <- import("C:/Users/Jole/Documents/R/DataScience/Data/electricity-prod-source-stacked.csv")
-perCapitaElecFossilNuclearRenewables <- import("C:/Users/Jole/Documents/R/DataScience/Data/per-capita-electricity-fossil-nuclear-renewables.csv")
 shareElectricityLowCarbon <- import("C:/Users/Jole/Documents/R/DataScience/Data/share-electricity-low-carbon.csv")
 nuclearRenewablesRlectricity <- import("C:/Users/Jole/Documents/R/DataScience/Data/nuclear-renewables-electricity.csv")
 PoliticalDataAV <- import("C:/Users/Jole/Documents/R/DataScience/Data/PoliticalDataAV.csv")
@@ -57,7 +55,8 @@ write.csv(dataMasterFile, "C:/Users/Jole/Documents/R/DataScience/Data/dataMaster
 write.csv(dataPol, "C:/Users/Jole/Documents/R/DataScience/Data/dataPol.csv", row.names=FALSE)
 write.csv(dataCorr, "C:/Users/Jole/Documents/R/DataScience/Data/dataCorr.csv", row.names=FALSE)
 
-
+dataMasterFile <- dataMasterFile[,-c(9:17, 32, 35, 38)]
+dataMasterFile <- dataMasterFile %>% filter(Year %in% (1990:2022) )
 ##############Calc####################
 
 #Calculate Political Leanings as an Average over last 33 Years and add them as a new Column 
@@ -338,7 +337,46 @@ dataTemp$AV_left <- AV_left
 dataTemp <- dataTemp[ -c(6:41)]
 dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
 
+#Calculate statistical key figures 
 
+data1990 <- filter(dataMasterFile, Year==1990)
+data2022 <- filter(dataMasterFile, Year==2022)
+
+#AV all Sources 1990
+
+(AVCoal <- mean(data1990$`Coal (% electricity)`))
+(AVGas <- mean(data1990$`Gas (% electricity)`))
+(AVOil <- mean(data1990$`Oil (% electricity)`))
+(AVNuclear <- mean(data1990$`Nuclear (% electricity)`))
+(AVHydro <- mean(data1990$`Hydro (% electricity)`))
+(AVSolar <- mean(data1990$`Solar (% electricity)`))
+(AVWind <- mean(data1990$`Wind (% electricity)`))
+(AVBioenergy <- mean(data1990$`Bioenergy (% electricity)`))
+(AVRenewable <- mean(data1990$`Renewables (% electricity)`))
+(AVLowCarbon <- mean(data1990$`Low-carbon electricity (% electricity)`))
+(AVLowCarbon <- mean(100-data1990$`Low-carbon electricity (% electricity)`))
+
+
+#AV all Sources 2022
+
+AVCoal <- mean(data2022$`Coal (% electricity)`)
+AVGas <- mean(data2022$`Gas (% electricity)`)
+AVOil <- mean(data2022$`Oil (% electricity)`)
+AVNuclear <- mean(data2022$`Nuclear (% electricity)`)
+AVHydro <- mean(data2022$`Hydro (% electricity)`)
+AVSolar <- mean(data2022$`Solar (% electricity)`)
+AVWind <- mean(data2022$`Wind (% electricity)`)
+AVBioenergy <- mean(data2022$`Bioenergy (% electricity)`)
+
+(AVRenewable <- mean(data2022$`Renewables (% electricity)`))
+(AVLowCarbon <- mean(data2022$`Low-carbon electricity (% electricity)`))
+AVLowCarbon <- mean(100-data2022$`Low-carbon electricity (% electricity)`)
+
+(maxRenewable <- max(data2022$`Renewables (% electricity)`))
+
+#calc sd
+(sdRren <- sd(data2022$`Renewables (% electricity)`))
+(sdLow <- sd(data2022$`Low-carbon electricity (% electricity)`))
 
 ########################################plotting########################################
 
@@ -374,6 +412,27 @@ ggplot(data=dataGroup, aes(x=factor(Year), y=mean)) +
   geom_label_repel(data = filter(dataGroup, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)"), aes( label = Type), nudge_x = -2,force = 10) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.3, 0)) +
   labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+#plot sources of Electricity over time(Renewables, Renewables+Nuclear, Fossil, Nuclear )
+dataAll1990 <- dataMasterFile %>% filter(Year %in% (1990:2022) )
+#plot sources of Electricity over time(Renewables, Renewables+Nuclar, Fossil )
+ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
+  stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+  stat_summary(aes(x=factor(Year), y=`Nuclear (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#b58900") + 
+  geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2", size = 5) + 
+  geom_label(aes(x = 6, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f") +
+  geom_label(aes(x = 6, y = 25, label = "Nuklear"), colour="#b58900") +
+  geom_label(aes(x = 15, y = 65, label = "Fossile Energie Träger"), colour="#2aa198") +
+  theme(legend.position = 'none') +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  theme_classic(base_size = 16) +
+  ylim(0, NA) + 
+  labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+
+
 #Nuclear
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Nuclear (% electricity)"),  group = 1, col="#268bd2") +
@@ -553,7 +612,8 @@ chars <- sapply(df, is.character)
 dataCorr[ , chars] <- as.data.frame(apply(dataCorr[ , chars], 2, as.numeric))
 corr <- cor(dataCorr)
 
-ggcorrplot(corr, hc.order = TRUE, type = "lower", lab = TRUE, lab_size = 3, method="circle")
+ggcorrplot(corr, hc.order = TRUE, type = "lower", lab = TRUE, lab_size = 3, method="circle") +
+  labs(title="Korrelation der Energieträger Anteile und Länder Varibalen", subtitle="Jahr: 2021", caption="Quelle: ourWorldInData, BP, Ember & [12-19]") 
 
 #Compute Correlation between HDI and Low Carbon electricity 
 cor(data2021$HDI_2021, data2021$`Low-carbon electricity (% electricity)`)
@@ -1097,3 +1157,28 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Strommix in Schweden", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
+###########################Forcast######################
+
+dataWide <- gather(dataMasterFile, Type, percent, `Renewables (% electricity)`, factor_key=TRUE)
+dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
+dataGroup <- dataWide %>% group_by(Year) %>% summarise(mean= mean(percent))
+dataGroupTs <- ts(dataGroup, start=1990, frequency = 1)
+dataGroupTs <- dataGroupTs[, -1]
+plot(dataGroupTs)
+
+str(dataGroup)
+str(dataGroupTs)
+head(dataGroupTs)
+dataForecast <-  forecast(dataForecast, h=30)
+dfFor <- fortify(dataForecast, ts.connect = TRUE)
+plot(forecast(dataForecast, h=30))
+
+
+ggplot(data=dfFor, aes(x=Index, y=Fitted)) + 
+  geom_line(col="#268bd2") +
+  geom_line(aes(x=Index, y=`Point Forecast`), col="#dc322f") +
+  geom_ribbon(aes(x=Index, ymax=`Lo 95`, ymin=`Hi 95`), fill="#268bd2", alpha=.3) + 
+  geom_ribbon(aes(x=Index, ymax=`Lo 80`, ymin=`Hi 80`), fill="pink", alpha=.6) + 
+  scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
+  coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 100)) + 
+  labs(title="Prognose Erneuerbare Energien im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
