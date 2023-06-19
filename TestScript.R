@@ -546,7 +546,6 @@ ggplot(data2022, aes(x=data1990$`Low-carbon electricity (% electricity)`, xend=`
   geom_dumbbell(color="#a3c4dc", 
                 size=0.75, 
                 colour_xend = "darkBlue") + 
-  theme_classic(base_size = 20) +
   labs(x=NULL, y=NULL, title="Veränderung des Anteils von Co2 armen Energieträgern im Strommix", subtitle="1990 Vs. 2022 - Geordnet nach Wachstum (Größte Oben)", caption="Quelle: ourWorldInData, BP & Ember") 
 
 #order after 1990 data Low-carbon electricity
