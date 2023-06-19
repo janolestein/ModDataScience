@@ -546,6 +546,7 @@ ggplot(data2022, aes(x=data1990$`Low-carbon electricity (% electricity)`, xend=`
   geom_dumbbell(color="#a3c4dc", 
                 size=0.75, 
                 colour_xend = "darkBlue") + 
+  theme_classic(base_size = 20) +
   labs(x=NULL, y=NULL, title="Veränderung des Anteils von Co2 armen Energieträgern im Strommix", subtitle="1990 Vs. 2022 - Geordnet nach Wachstum (Größte Oben)", caption="Quelle: ourWorldInData, BP & Ember") 
 
 #order after 1990 data Low-carbon electricity
@@ -605,15 +606,16 @@ ggplot(data2022, aes(x=data1990$`Renewables (% electricity)`, xend=`Renewables (
                 colour_xend = "darkBlue") + 
   labs(x=NULL, y=NULL, title="Veränderung des Anteils von erneuerbaren Energieträgern im Strommix", subtitle="1990 Vs. 2022 - Geordnet nach heutigem Anteil (Größte Oben)", caption="Quelle: ourWorldInData, BP & Ember") 
 
-#filter year 
+#filter year for correlation
 data2021 <- filter(dataMasterFile, Year==2021)
-dataCorr <- data2021[,-c(1,2,8,9:17,11,21:24,32,35,36,38)]
-chars <- sapply(df, is.character)
-dataCorr[ , chars] <- as.data.frame(apply(dataCorr[ , chars], 2, as.numeric))
+dataCorr <- data2021[,-c(1,2,8,12:15,25)]
+#chars <- sapply(df, is.character)
+#dataCorr[ , chars] <- as.data.frame(apply(dataCorr[ , chars], 2, as.numeric))
 corr <- cor(dataCorr)
 
-ggcorrplot(corr, hc.order = TRUE, type = "lower", lab = TRUE, lab_size = 3, method="circle") +
-  labs(title="Korrelation der Energieträger Anteile und Länder Varibalen", subtitle="Jahr: 2021", caption="Quelle: ourWorldInData, BP, Ember & [12-19]") 
+#Corrplot
+ggcorrplot(corr, hc.order = TRUE, type = "lower",  lab = TRUE, lab_size = 3, method="circle") +
+  labs(title="Korrelation der Energieträger Anteile und Länder Parameter", subtitle="Jahr: 2021", caption="Quelle: ourWorldInData, BP, Ember & [12-19]") 
 
 #Compute Correlation between HDI and Low Carbon electricity 
 cor(data2021$HDI_2021, data2021$`Low-carbon electricity (% electricity)`)
@@ -674,7 +676,7 @@ ggplot(data=data2021, aes(x=factor(longitude), y=`Low-carbon electricity (% elec
 ########################################################Countries############################################################
 #Austria
 dataTest <- filter(dataMasterFile, Entity=="Austria")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Austria
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -692,7 +694,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Belgium
 dataTest <- filter(dataMasterFile, Entity=="Belgium")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Belgium
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -711,7 +713,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Bulgaria
 dataTest <- filter(dataMasterFile, Entity=="Bulgaria")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Bulgaria
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -730,7 +732,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Croatia
 dataTest <- filter(dataMasterFile, Entity=="Croatia")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Croatia
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -748,7 +750,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Cyprus
 dataTest <- filter(dataMasterFile, Entity=="Cyprus")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`,, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Cyprus
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -764,7 +766,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Czechia
 dataTest <- filter(dataMasterFile, Entity=="Czechia")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Czechia
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -802,7 +804,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Estonia
 dataTest <- filter(dataMasterFile, Entity=="Estonia")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Estonia
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -817,7 +819,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Finland
 dataTest <- filter(dataMasterFile, Entity=="Finland")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Finland
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -836,7 +838,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #France
 dataTest <- filter(dataMasterFile, Entity=="France")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in France
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -855,7 +857,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Deutschland
 dataTest <- filter(dataMasterFile, Entity=="Germany")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Germany
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -868,14 +870,14 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   geom_line(data = dataWide %>% filter(Type == "Oil (% electricity)"),  group = 1, col="#49be25") +
   geom_line(data = dataWide %>% filter(Type == "Bioenergy (% electricity)"), group = 1, col="#be4d25") +
   geom_label_repel(data = filter(dataWide, Year=="2022", Type!="Other renewables excluding bioenergy (% electricity)"), aes( label = Type), nudge_x = 2, force = 5) +
-  geom_label_repel(data = filter(dataWide, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)"), aes( label = Type), nudge_x = -2) +
+  geom_label_repel(data = filter(dataWide, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)"), aes( label = Type), nudge_x = -2, force = 5) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Strommix in Deutschland", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt ", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 
 #Greece
 dataTest <- filter(dataMasterFile, Entity=="Greece")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Greece
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -893,7 +895,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Hungary
 dataTest <- filter(dataMasterFile, Entity=="Hungary")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Hungary
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -929,7 +931,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Italy
 dataTest <- filter(dataMasterFile, Entity=="Italy")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Italy
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -947,7 +949,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Latvia
 dataTest <- filter(dataMasterFile, Entity=="Latvia")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Latvia
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -962,7 +964,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Lithuania
 dataTest <- filter(dataMasterFile, Entity=="Lithuania")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Lithuania
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -980,7 +982,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Luxembourg
 dataTest <- filter(dataMasterFile, Entity=="Luxembourg")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Luxembourg
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -997,7 +999,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Malta
 dataTest <- filter(dataMasterFile, Entity=="Malta")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Malta
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1012,7 +1014,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Netherlands
 dataTest <- filter(dataMasterFile, Entity=="Netherlands")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Netherlands
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1030,7 +1032,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Poland
 dataTest <- filter(dataMasterFile, Entity=="Poland")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Poland
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1048,7 +1050,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Portugal
 dataTest <- filter(dataMasterFile, Entity=="Portugal")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Portugal
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1066,7 +1068,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Romania
 dataTest <- filter(dataMasterFile, Entity=="Romania")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Romania
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1085,7 +1087,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Slovakia
 dataTest <- filter(dataMasterFile, Entity=="Slovakia")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Slovakia
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1103,7 +1105,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Slovenia
 dataTest <- filter(dataMasterFile, Entity=="Slovenia")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Slovenia
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1121,7 +1123,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Spain
 dataTest <- filter(dataMasterFile, Entity=="Spain")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Spain
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1140,7 +1142,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Sweden
 dataTest <- filter(dataMasterFile, Entity=="Sweden")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`,, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Sweden
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
