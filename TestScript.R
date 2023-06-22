@@ -1,7 +1,7 @@
 #load packages
 pacman::p_load(pacman, dplyr, GGally, ggplot2, ggthemes, 
                ggvis, httr, lubridate, plotly, rio, rmarkdown, shiny, 
-               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt, rqdatatable,scales) 
+               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt, rqdatatable,scales, forecast, fortify) 
 library(ggrepel)
 library(scales)
 library("rqdatatable")
@@ -10,6 +10,8 @@ library(tidyr)
 library(ggcorrplot)
 library(ggalt)
 library(forcats)
+library(forecast)
+library(fortify)
 install.packages("devtools")
 devtools::install_github('Mikata-Project/ggthemr')
 library(ggthemr)
@@ -494,39 +496,48 @@ ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Greenhouse gas (GHG) emission
 #Nuclear
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Nuclear (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Nuklear Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 #Coal
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Coal (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Kohle Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 #Gas
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Gas (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Gas Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 #Hydro
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Hydro (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Wasserkraft Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 #Solar
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Solar (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Solarenergie Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 #Wind
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Wind (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Windenergie Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 #Oil
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Oil (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Öl Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 #Bioenergy
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Bioenergy (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Bioenergie Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 #Andere Erneuerbare Energien
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Other renewables excluding bioenergy (% electricity)"),  group = 1, col="#268bd2") +
+  theme_classic(base_size = 16) +
   labs(title="Anteil 'Andere Erneuerbare Energien'  im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 #plot every Country by Source ordered
@@ -1610,6 +1621,7 @@ ggplot(data = dataMasterFile %>% filter(Entity == "Sweden"), aes(x=factor(Year),
 
 ###########################Forcast######################
 
+#forecast renewable
 dataWide <- gather(dataMasterFile, Type, percent, `Renewables (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 dataGroup <- dataWide %>% group_by(Year) %>% summarise(mean= mean(percent))
@@ -1620,9 +1632,59 @@ plot(dataGroupTs)
 str(dataGroup)
 str(dataGroupTs)
 head(dataGroupTs)
-dataForecast <-  forecast(dataForecast, h=30)
-dfFor <- fortify(dataForecast, ts.connect = TRUE)
-plot(forecast(dataForecast, h=30))
+#dataForecast <-  forecast(dataForecast, h=30)
+#dfFor <- fortify(dataForecast, ts.connect = TRUE)
+fit <- ets(dataGroupTs)
+autoplot(forecast(fit, h=30)) +
+  scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
+  coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 100)) + 
+  theme_classic(base_size = 16) +
+  labs(title="Prognose Erneuerbare Energien im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Model:ets(A, A, N)", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+#forecast low carbon
+dataWide <- gather(dataMasterFile, Type, percent, `Low-carbon electricity (% electricity)`, factor_key=TRUE)
+dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
+dataGroup <- dataWide %>% group_by(Year) %>% summarise(mean= mean(percent))
+dataGroupTs <- ts(dataGroup, start=1990, frequency = 1)
+dataGroupTs <- dataGroupTs[, -1]
+plot(dataGroupTs)
+
+str(dataGroup)
+str(dataGroupTs)
+head(dataGroupTs)
+#dataForecast <-  forecast(dataForecast, h=30)
+#dfFor <- fortify(dataForecast, ts.connect = TRUE)
+fit <- ets(dataGroupTs)
+autoplot(forecast(fit, h=30)) +
+  scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
+  coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 100)) + 
+  theme_classic(base_size = 16) +
+  labs(title="Prognose Co2 arme Energieträger im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Model:ets(A, A, N)", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+#forecast fossil
+dataTemp <- dataMasterFile %>% mutate(fossil =  100-`Low-carbon electricity (% electricity)`)
+dataWide <- gather(dataTemp, Type, percent, fossil, factor_key=TRUE)
+dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
+dataGroup <- dataWide %>% group_by(Year) %>% summarise(mean= mean(percent))
+dataGroupTs <- ts(dataGroup, start=1990, frequency = 1)
+dataGroupTs <- dataGroupTs[, -1]
+plot(dataGroupTs)
+
+str(dataGroup)
+str(dataGroupTs)
+head(dataGroupTs)
+#dataForecast <-  forecast(dataForecast, h=30)
+#dfFor <- fortify(dataForecast, ts.connect = TRUE)
+fit <- ets(dataGroupTs)
+autoplot(forecast(fit, h=30)) +
+  scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
+  coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 95)) + 
+  theme_classic(base_size = 16) +
+  labs(title="Prognose Fossile Energieträger im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Model:ets(A, A, N)", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+
+
+
 
 
 ggplot(data=dfFor, aes(x=Index, y=Fitted)) + 
