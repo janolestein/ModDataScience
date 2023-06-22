@@ -1,8 +1,9 @@
 #load packages
 pacman::p_load(pacman, dplyr, GGally, ggplot2, ggthemes, 
                ggvis, httr, lubridate, plotly, rio, rmarkdown, shiny, 
-               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt, rqdatatable) 
+               stringr, tidyr, ggrepel, directlabels, ggcorrplot, ggalt, rqdatatable,scales) 
 library(ggrepel)
+library(scales)
 library("rqdatatable")
 library(directlabels)
 library(tidyr)
@@ -25,8 +26,11 @@ shareElectricityLowCarbon <- import("C:/Users/Jole/Documents/R/DataScience/Data/
 nuclearRenewablesRlectricity <- import("C:/Users/Jole/Documents/R/DataScience/Data/nuclear-renewables-electricity.csv")
 PoliticalDataAV <- import("C:/Users/Jole/Documents/R/DataScience/Data/PoliticalDataAV.csv")
 PoliticalDataGran <- import("C:/Users/Jole/Documents/R/DataScience/Data/PolDataGran.csv")
+Co2_em <- import("C:/Users/Jole/Documents/R/DataScience/Data/annual-co2-emissions-per-country.csv")
+ghg_intent <- import("C:/Users/Jole/Documents/R/DataScience/Data/co2-emission-intensity-13.csv")
+ghg_intent <- ghg_intent[,-c(4,5)]
 #import master mac
-dataMasterFile <- import("/Users/jstein/Desktop/R/dataMasterFile.csv")
+dataMasterFile <- import("/Users/jstein/Desktop/R/Data/dataMasterFile.csv")
 
 #import master Windows
 dataMasterFile <- import("C:/Users/Jole/Documents/R/DataScience/Data/dataMasterFile.csv")
@@ -45,7 +49,8 @@ dataMasterFile <- merge(x=dataMasterFile, y=perCapitaElecFossilNuclearRenewables
 dataMasterFile <- merge(x=dataMasterFile, y=shareElectricityLowCarbon, by=c("Entity","Year","Code"), all.x=TRUE)
 dataMasterFile <- merge(x=dataMasterFile, y=nuclearRenewablesRlectricity, by=c("Entity","Year","Code","Nuclear (% electricity)"), all.x=TRUE)
 dataMasterFile <- merge(x=dataMasterFile, y=PoliticalDataAV, by=c("Entity","Year"), all.x=TRUE)
-dataMasterFile <- merge(x=dataMasterFile, y=PoliticalDataGran, by=c("Entity","Year"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=Co2_em, by=c("Entity","Year","Code"), all.x=TRUE)
+dataMasterFile <- merge(x=dataMasterFile, y=ghg_intent, by=c("Entity","Year"), all.x=TRUE)
 mergeTest2021 <- filter(dataMasterFile, Year == 2021)
 mergeTest2020 <- filter(dataMasterFile, Year == 2020)
 
@@ -56,6 +61,7 @@ write.csv(dataPol, "C:/Users/Jole/Documents/R/DataScience/Data/dataPol.csv", row
 write.csv(dataCorr, "C:/Users/Jole/Documents/R/DataScience/Data/dataCorr.csv", row.names=FALSE)
 
 dataMasterFile <- dataMasterFile[,-c(9:17, 32, 35, 38)]
+dataMasterFile <- dataMasterFile[,-c(31)]
 dataMasterFile <- dataMasterFile %>% filter(Year %in% (1990:2022) )
 ##############Calc####################
 
@@ -395,7 +401,7 @@ ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, gro
   labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 #plot sources of Electricity over time(all seperat, all Eu Countries)
-dataWide <- gather(dataMasterFile, Type, percent, `Nuclear (% electricity)`:`Bioenergy (% electricity)`, factor_key=TRUE)
+dataWide <- gather(dataMasterFile, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 dataGroup <- dataWide %>% group_by(Year, Type) %>% summarise(mean= mean(percent))
 
@@ -431,6 +437,58 @@ ggplot(data=dataAll1990, aes(x=factor(Year), y=`Renewables (% electricity)`, gro
   ylim(0, NA) + 
   labs(title="Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
+data1990 = filter(dataMasterFile, Year=="1990")
+(AV_Co2_em = mean(data1990$`Annual CO₂ emissions`))
+(AV_Co2_em = max(data1990$`Annual CO₂ emissions`))
+#Co2 Data plotting
+
+ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5))  +
+  #theme_classic(base_size = 16) +
+  #ylim(0, NA) + 
+  labs(title="Co2 Emissionen in allen heutigen EU Ländern", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+`Annual CO₂ emissions` - min(`Annual CO₂ emissions`) / max(`Annual CO₂ emissions`) - min(`Annual CO₂ emissions`)
+meanCo2 <- mean(dataMasterFile, `Annual CO₂ emissions`) - min(mean(dataMasterFile, `Annual CO₂ emissions`)) / max(mean(dataMasterFile, `Annual CO₂ emissions`)) - min(mean(dataMasterFile, `Annual CO₂ emissions`))
+
+dataTemp <- dataMasterFile
+dataTemp <- dataTemp %>% 
+  mutate( Co2Em = scales:::rescale(dataTemp$`Annual CO₂ emissions`, to = c(0,100))) 
+  
+mutate( LowCar = (`Low-carbon electricity (% electricity)` - min(`Low-carbon electricity (% electricity)`, na.rm=TRUE)) / (max(`Low-carbon electricity (% electricity)`, na.rm=TRUE) - min(`Low-carbon electricity (% electricity)`, na.rm=TRUE))) %>% 
+  mutate( Fossil = ((100-`Low-carbon electricity (% electricity)`) - min((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE)) / (max((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE) - min((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE))) 
+
+(max(dataMasterFile$`Annual CO₂ emissions`,na.rm=TRUE))
+
+ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Annual CO₂ emissions`/143166363*100, group = 1)) + 
+  stat_summary(fun = mean, geom="line", size = 1, colour="#268bd2") + 
+  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
+  stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+  stat_summary(aes(x=factor(Year), y=`Renewables (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#49be25") + 
+  #stat_summary(aes(x=factor(Year), y=`Annual CO₂ emissions`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+  #geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2", size = 6) + 
+  #geom_label(aes(x = 10, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f", size = 6) +
+  theme(legend.position = 'none') +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  #theme_classic(base_size = 16) +
+  #ylim(0, NA) + 
+  labs(title="Co2 Emissionen in allen heutigen EU Ländern", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+
+ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`/6, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  #stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
+  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+  #stat_summary(aes(x=factor(Year), y=`Annual CO₂ emissions`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+  #geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2", size = 6) + 
+  #geom_label(aes(x = 10, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f", size = 6) +
+  theme(legend.position = 'none') +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  #theme_classic(base_size = 16) +
+  #ylim(0, NA) + 
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in 'g CO2eq/kWh'", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP, Ember & European Environment Agency (EEA)  ")
+
 
 
 #Nuclear
@@ -465,6 +523,11 @@ ggplot(data=dataGroup, aes(x=Year, y=mean)) +
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Bioenergy (% electricity)"),  group = 1, col="#268bd2") +
   labs(title="Bioenergie Anteil im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+#Andere Erneuerbare Energien
+ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
+  geom_line(data = dataGroup %>% filter(Type == "Other renewables excluding bioenergy (% electricity)"),  group = 1, col="#268bd2") +
+  labs(title="Anteil 'Andere Erneuerbare Energien'  im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 #plot every Country by Source ordered
 data2022 <- filter(dataMasterFile, Year==2022)
@@ -607,7 +670,7 @@ ggplot(data2022, aes(x=data1990$`Renewables (% electricity)`, xend=`Renewables (
 
 #filter year for correlation
 data2021 <- filter(dataMasterFile, Year==2021)
-dataCorr <- data2021[,-c(1,2,8,12:15,25)]
+dataCorr <- data2021[,-c(1:3,12:15,25)]
 #chars <- sapply(df, is.character)
 #dataCorr[ , chars] <- as.data.frame(apply(dataCorr[ , chars], 2, as.numeric))
 corr <- cor(dataCorr)
@@ -749,7 +812,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Cyprus
 dataTest <- filter(dataMasterFile, Entity=="Cyprus")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`,, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Cyprus
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1141,7 +1204,7 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
 
 #Sweden
 dataTest <- filter(dataMasterFile, Entity=="Sweden")
-dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`,, factor_key=TRUE)
+dataWide <- gather(dataTest, Type, percent, `Nuclear (% electricity)`,`Bioenergy (% electricity)`, `Coal (% electricity)`,`Gas (% electricity)`,`Hydro (% electricity)`,`Oil (% electricity)`,`Solar (% electricity)`,`Wind (% electricity)`,`Other renewables excluding bioenergy (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
 #plot sources of Electricity over time in Sweden
 ggplot(data=dataWide, aes(x=factor(Year), y=percent)) + 
@@ -1157,6 +1220,393 @@ ggplot(data=dataWide, aes(x=factor(Year), y=percent)) +
   geom_label_repel(data = filter(dataWide, Year=="1990", Type!="Other renewables excluding bioenergy (% electricity)"), aes( label = Type), nudge_x = -2, force = 20) +
   scale_x_discrete(guide = guide_axis(n.dodge = 2), expand = c(0.2, 0)) +
   labs(title="Strommix in Schweden", subtitle="1990-2022 - Anteilig Vernachlässigbare Energieträger wurden entfernt", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+#########################################Co2 Emissions Plotting##################################################
+options(scipen=10000)
+
+#Austria Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Austria"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Östereich", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Austria
+ggplot(data = dataMasterFile %>% filter(Entity == "Austria"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Östereich", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", ccaption="Quelle: European Environment Agency (EEA)  ")
+
+#Belgium Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Belgium"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Belgien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Belgium
+ggplot(data = dataMasterFile %>% filter(Entity == "Belgium"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Belgien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Bulgaria Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Bulgaria"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Bulgarien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Bulgaria
+ggplot(data = dataMasterFile %>% filter(Entity == "Bulgaria"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Bulgarien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Croatia Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Croatia"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Kroatien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Croatia
+ggplot(data = dataMasterFile %>% filter(Entity == "Croatia"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Kroatien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Cyprus Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Cyprus"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Zypern", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Cyprus
+ggplot(data = dataMasterFile %>% filter(Entity == "Cyprus"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Zypern", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Czechia Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Czechia"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Tschechien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Czechia
+ggplot(data = dataMasterFile %>% filter(Entity == "Czechia"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Tschechien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Denmark Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Denmark"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Dänemark", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Denmark
+ggplot(data = dataMasterFile %>% filter(Entity == "Denmark"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Dänemark", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Estonia Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Estonia"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Estland", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Estonia
+ggplot(data = dataMasterFile %>% filter(Entity == "Estonia"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Estland", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Finland Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Finland"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Finnland", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Finland
+ggplot(data = dataMasterFile %>% filter(Entity == "Finland"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Finnland", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#France Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "France"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Frankreich", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#France
+ggplot(data = dataMasterFile %>% filter(Entity == "France"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Frankreich", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Germany Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Germany"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Deutschland", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Germany
+ggplot(data = dataMasterFile %>% filter(Entity == "Germany"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Deutschland", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Greece Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Greece"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Griechenland", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Greece
+ggplot(data = dataMasterFile %>% filter(Entity == "Greece"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Griechenland", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Hungary Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Hungary"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Ungarn", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Hungary
+ggplot(data = dataMasterFile %>% filter(Entity == "Hungary"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Ungarn", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Ireland Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Ireland"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Irland", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Ireland
+ggplot(data = dataMasterFile %>% filter(Entity == "Ireland"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Irland", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Italy Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Italy"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Italien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Italy
+ggplot(data = dataMasterFile %>% filter(Entity == "Italy"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Italien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Latvia Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Latvia"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Lettland", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Latvia
+ggplot(data = dataMasterFile %>% filter(Entity == "Latvia"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Lettland", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Lithuania Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Lithuania"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Litauen", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Lithuania
+ggplot(data = dataMasterFile %>% filter(Entity == "Lithuania"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Litauen", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Luxembourg Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Luxembourg"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Luxemburg", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Luxembourg
+ggplot(data = dataMasterFile %>% filter(Entity == "Luxembourg"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Luxemburg", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Malta Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Malta"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Malta", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Malta
+ggplot(data = dataMasterFile %>% filter(Entity == "Malta"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Malta", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Netherlands Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Netherlands"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in den Niederlande", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Netherlands
+ggplot(data = dataMasterFile %>% filter(Entity == "Netherlands"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in den Niederlande", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Poland Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Poland"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Polen", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Poland
+ggplot(data = dataMasterFile %>% filter(Entity == "Poland"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Polen", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Portugal Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Portugal"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Portugal", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Portugal
+ggplot(data = dataMasterFile %>% filter(Entity == "Portugal"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Portugal", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Romania Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Romania"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Rumänien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Romania
+ggplot(data = dataMasterFile %>% filter(Entity == "Romania"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Rumänien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Slovakia Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Slovakia"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Slowakei", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Slovakia
+ggplot(data = dataMasterFile %>% filter(Entity == "Slovakia"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Slowakei", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Slovenia Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Slovenia"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Slowenien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Slovenia
+ggplot(data = dataMasterFile %>% filter(Entity == "Slovenia"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Slowenien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Spain Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Spain"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Spanien", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Spain
+ggplot(data = dataMasterFile %>% filter(Entity == "Spain"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Spanien", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+#Sweden Co2 Emissions 
+ggplot(data = dataMasterFile %>% filter(Entity == "Sweden"), aes(x=factor(Year), y=`Annual CO₂ emissions`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Co2 Emissionen (t) in Schweden", subtitle="1990-2021", y="Emissionen in t", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
+
+#Sweden
+ggplot(data = dataMasterFile %>% filter(Entity == "Sweden"), aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`, group = 1)) + 
+  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+  scale_x_discrete(breaks = seq(1990,2020, by=5)) +
+  #theme_classic(base_size = 16) +
+  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in Schweden", subtitle="1990-2021", y="g CO2eq/kWh", x="Jahr", caption="Quelle: European Environment Agency (EEA)  ")
+
+
+
+
+
+
 
 ###########################Forcast######################
 
