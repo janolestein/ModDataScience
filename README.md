@@ -4,7 +4,9 @@ Code, Data Files and Graphes for my Data Science Course
 
 Files:
 testScript.r: R File for processing, merging and ploting
+
 dataMasterFile.csv includes all Data gathered in one Place.
+
 "plots"-Folder: All Plots made for the Project
 
 
