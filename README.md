@@ -1,5 +1,5 @@
 # ModDataScience
-Code and Data Files for my Data Science Course
+Code, Data Files and Graphes for my Data Science Course
 
 
 Files:
