@@ -11,7 +11,7 @@ library(ggcorrplot)
 library(ggalt)
 library(forcats)
 library(forecast)
-library(fortify)
+
 install.packages("devtools")
 devtools::install_github('Mikata-Project/ggthemr')
 library(ggthemr)
@@ -88,12 +88,7 @@ dataTemp$AV_center <- AV_center
 dataTemp$AV_left <- AV_left
 dataTemp <- dataTemp[ -c(3:38)]
 dataMasterFile <- natural_join(dataMasterFile, dataTemp, by=c("Entity","Year"), jointype = "FULL")
-#dataMasterFile <- dataMasterFile %>% 
-#  left_join(dataTemp, by=c("Entity","Year","AV_right","AV_center","AV_left")) %>% 
-#  mutate(var2 = coalesce(var2.x, var2.y)) %>% 
-#  select(-var2.x, -var2.y)
 
-#dataMasterFile <- merge(x=dataMasterFile, y=dataTemp, by=c("Entity","Year","AV_right","AV_center","AV_left"), all=TRUE) 
 
 dataTemp <- dataMasterFile %>% filter(Year %in% (1990:2022) ) %>% filter(Entity=="Bulgaria") 
 AV_right = round(mean((dataTemp$gov_right1), na.rm = TRUE), digits=2)
@@ -451,45 +446,45 @@ ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Annual CO₂ emissions`, grou
   #ylim(0, NA) + 
   labs(title="Co2 Emissionen in allen heutigen EU Ländern", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData & Global Carbon Project")
 
-`Annual CO₂ emissions` - min(`Annual CO₂ emissions`) / max(`Annual CO₂ emissions`) - min(`Annual CO₂ emissions`)
-meanCo2 <- mean(dataMasterFile, `Annual CO₂ emissions`) - min(mean(dataMasterFile, `Annual CO₂ emissions`)) / max(mean(dataMasterFile, `Annual CO₂ emissions`)) - min(mean(dataMasterFile, `Annual CO₂ emissions`))
+#`Annual CO₂ emissions` - min(`Annual CO₂ emissions`) / max(`Annual CO₂ emissions`) - min(`Annual CO₂ emissions`)
+#meanCo2 <- mean(dataMasterFile, `Annual CO₂ emissions`) - min(mean(dataMasterFile, `Annual CO₂ emissions`)) / max(mean(dataMasterFile, `Annual CO₂ emissions`)) - min(mean(dataMasterFile, `Annual CO₂ emissions`))
 
-dataTemp <- dataMasterFile
-dataTemp <- dataTemp %>% 
-  mutate( Co2Em = scales:::rescale(dataTemp$`Annual CO₂ emissions`, to = c(0,100))) 
+#dataTemp <- dataMasterFile
+#dataTemp <- dataTemp %>% 
+ # mutate( Co2Em = scales:::rescale(dataTemp$`Annual CO₂ emissions`, to = c(0,100))) 
   
-mutate( LowCar = (`Low-carbon electricity (% electricity)` - min(`Low-carbon electricity (% electricity)`, na.rm=TRUE)) / (max(`Low-carbon electricity (% electricity)`, na.rm=TRUE) - min(`Low-carbon electricity (% electricity)`, na.rm=TRUE))) %>% 
-  mutate( Fossil = ((100-`Low-carbon electricity (% electricity)`) - min((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE)) / (max((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE) - min((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE))) 
+#mutate( LowCar = (`Low-carbon electricity (% electricity)` - min(`Low-carbon electricity (% electricity)`, na.rm=TRUE)) / (max(`Low-carbon electricity (% electricity)`, na.rm=TRUE) - min(`Low-carbon electricity (% electricity)`, na.rm=TRUE))) %>% 
+ # mutate( Fossil = ((100-`Low-carbon electricity (% electricity)`) - min((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE)) / (max((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE) - min((100-`Low-carbon electricity (% electricity)`), na.rm=TRUE))) 
 
-(max(dataMasterFile$`Annual CO₂ emissions`,na.rm=TRUE))
+#(max(dataMasterFile$`Annual CO₂ emissions`,na.rm=TRUE))
 
-ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Annual CO₂ emissions`/143166363*100, group = 1)) + 
-  stat_summary(fun = mean, geom="line", size = 1, colour="#268bd2") + 
-  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
-  stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
-  stat_summary(aes(x=factor(Year), y=`Renewables (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#49be25") + 
+#ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Annual CO₂ emissions`/143166363*100, group = 1)) + 
+#  stat_summary(fun = mean, geom="line", size = 1, colour="#268bd2") + 
+ # stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
+  #stat_summary(aes(x=factor(Year), y=100-`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+  #stat_summary(aes(x=factor(Year), y=`Renewables (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#49be25") + 
   #stat_summary(aes(x=factor(Year), y=`Annual CO₂ emissions`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
   #geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2", size = 6) + 
   #geom_label(aes(x = 10, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f", size = 6) +
-  theme(legend.position = 'none') +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+  #theme(legend.position = 'none') +
+  #scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   #theme_classic(base_size = 16) +
   #ylim(0, NA) + 
-  labs(title="Co2 Emissionen in allen heutigen EU Ländern", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+  #labs(title="Co2 Emissionen in allen heutigen EU Ländern", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 
-ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`/6, group = 1)) + 
-  stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
+#ggplot(data=dataMasterFile, aes(x=factor(Year), y=`Greenhouse gas (GHG) emission intensity`/6, group = 1)) + 
+ # stat_summary(fun=mean, geom="line", size = 1, colour="#268bd2") + 
   #stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#dc322f") + 
-  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
+#  stat_summary(aes(x=factor(Year), y=`Low-carbon electricity (% electricity)`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
   #stat_summary(aes(x=factor(Year), y=`Annual CO₂ emissions`), fun = mean, geom = 'line', size = 1,  group=1, colour="#2aa198") + 
   #geom_label(aes(x = 6, y = 15 , label = "Erneuerbare"), colour="#268bd2", size = 6) + 
   #geom_label(aes(x = 10, y = 43, label = "Erneuerbare + Nuklear (Co2 Arme Energieträger)"), colour="#dc322f", size = 6) +
-  theme(legend.position = 'none') +
-  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+#  theme(legend.position = 'none') +
+#  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   #theme_classic(base_size = 16) +
   #ylim(0, NA) + 
-  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in 'g CO2eq/kWh'", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP, Ember & European Environment Agency (EEA)  ")
+#  labs(title="Spezifische Kohlendioxid-Emission der Stromerzeugung in 'g CO2eq/kWh'", subtitle="1990-2021", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP, Ember & European Environment Agency (EEA)  ")
 
 
 
@@ -537,7 +532,6 @@ ggplot(data=dataGroup, aes(x=Year, y=mean)) +
 #Andere Erneuerbare Energien
 ggplot(data=dataGroup, aes(x=Year, y=mean)) + 
   geom_line(data = dataGroup %>% filter(Type == "Other renewables excluding bioenergy (% electricity)"),  group = 1, col="#268bd2") +
-  theme_classic(base_size = 16) +
   labs(title="Anteil 'Andere Erneuerbare Energien'  im Strommix in allen heutigen EU Ländern", subtitle="1990-2022", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 #plot every Country by Source ordered
@@ -688,7 +682,7 @@ corr <- cor(dataCorr)
 
 #Corrplot
 ggcorrplot(corr, hc.order = TRUE, type = "lower",  lab = TRUE, lab_size = 3, method="circle") +
-  labs(title="Korrelation der Energieträger Anteile und Länder Parameter", subtitle="Jahr: 2021", caption="Quelle: ourWorldInData, BP, Ember & [12-19]") 
+  labs(title="Korrelation der Energieträger Anteile und Länder Parameter", subtitle="Jahr: 2021", caption="Quelle: ourWorldInData, BP, Ember & Beschafung[12-21]") 
 
 #Compute Correlation between HDI and Low Carbon electricity 
 cor(data2021$HDI_2021, data2021$`Low-carbon electricity (% electricity)`)
@@ -1634,13 +1628,14 @@ str(dataGroupTs)
 head(dataGroupTs)
 #dataForecast <-  forecast(dataForecast, h=30)
 #dfFor <- fortify(dataForecast, ts.connect = TRUE)
-fit <- ets(dataGroupTs)
-autoplot(forecast(fit, h=30)) +
+fit <- holt(dataGroupTs, h=28)
+autoplot(forecast(fit, h=28)) +
   scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
   coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 100)) + 
   theme_classic(base_size = 16) +
-  labs(title="Prognose Erneuerbare Energien im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Model:ets(A, A, N)", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+  labs(title="Prognose Erneuerbare Energien im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose: 2023-2050 Methode: Holt’s linear trend ", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
+(fit$mean)
 #forecast low carbon
 dataWide <- gather(dataMasterFile, Type, percent, `Low-carbon electricity (% electricity)`, factor_key=TRUE)
 dataWide <- dataWide %>% filter(Year %in% (1990:2022) )
@@ -1654,12 +1649,14 @@ str(dataGroupTs)
 head(dataGroupTs)
 #dataForecast <-  forecast(dataForecast, h=30)
 #dfFor <- fortify(dataForecast, ts.connect = TRUE)
-fit <- ets(dataGroupTs)
-autoplot(forecast(fit, h=30)) +
+fit <- holz(dataGroupTs, h=28)
+autoplot(forecast(fit, h=28)) +
   scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
   coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 100)) + 
   theme_classic(base_size = 16) +
-  labs(title="Prognose Co2 arme Energieträger im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Model:ets(A, A, N)", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+  labs(title="Prognose CO2 arme Energieträger im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Methode: Holt’s linear trend ", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+
+(fit$mean)
 
 #forecast fossil
 dataTemp <- dataMasterFile %>% mutate(fossil =  100-`Low-carbon electricity (% electricity)`)
@@ -1675,15 +1672,15 @@ str(dataGroupTs)
 head(dataGroupTs)
 #dataForecast <-  forecast(dataForecast, h=30)
 #dfFor <- fortify(dataForecast, ts.connect = TRUE)
-fit <- ets(dataGroupTs)
-autoplot(forecast(fit, h=30)) +
+fit <- holt(dataGroupTs, h=28)
+autoplot(forecast(fit, h=28)) +
   scale_x_continuous(limits=c(1990, 2050), breaks=c(1990, 2000, 2010, 2020, 2030, 2040, 2050)) +
   coord_cartesian(xlim=c(1990, 2050), ylim=c(0, 95)) + 
   theme_classic(base_size = 16) +
-  labs(title="Prognose Fossile Energieträger im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Model:ets(A, A, N)", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
+  labs(title="Prognose Fossile Energieträger im Strommix bis 2050", subtitle="Daten: 1990-2022 Prognose:2023-2050 Methode: Holt’s linear trend", y="% Anteil", x="Jahr", caption="Quelle: ourWorldInData, BP & Ember")
 
 
-
+(fit$mean)
 
 
 
