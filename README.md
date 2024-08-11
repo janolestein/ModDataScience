@@ -10,6 +10,12 @@ dataMasterFile.csv includes all Data gathered in one Place.
 
 "plots"-Folder: All Plots made for the Project
 
+## Some Example Graphs
+![mix Detuschland Plot](plots/MixLaenderEinzeln/DeutschlandMix.png)
+![mix Detuschland Plot](plots/alleEuLaenderVerglichen/Korrelation/CorLaengengradLowCo2.png)
+![mix Detuschland Plot](plots/alleEuLaenderVerglichen/Korrelation/ggcorrplot.png)
+
+
 
 Sources:
 
